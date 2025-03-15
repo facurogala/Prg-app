@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, FlatList } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient'; // Importamos LinearGradient
+import { LinearGradient } from 'expo-linear-gradient';
 
 const App: React.FC = () => {
   // Estados para los inputs y el 1RM
@@ -14,32 +14,38 @@ const App: React.FC = () => {
     const repsNum = parseFloat(reps);
 
     if (!isNaN(weightNum) && !isNaN(repsNum) && repsNum > 0) {
+      // Fórmula de Epley
       const oneRM = weightNum * (1 + 0.0333 * repsNum);
-      setOneRepMax(oneRM);
+      return Math.round(oneRM); // Redondear al entero más cercano
     } else {
-      setOneRepMax(null);
+      return null;
     }
   };
 
-  // Función para calcular los RM del 1 al 16 (4x4)
+  // Función para calcular los RM del 1 al 20
   const calculateRMs = () => {
     if (!oneRepMax) return [];
 
     const rms = [];
-    for (let i = 1; i <= 16; i++) {
+    // Agregar el 1RM como el primer elemento
+    rms.push({ reps: 1, weight: oneRepMax });
+
+    // Calcular los RM subsiguientes (2RM a 20RM)
+    for (let i = 2; i <= 20; i++) {
+      // Fórmula inversa de Epley
       const rm = oneRepMax / (1 + 0.0333 * i);
-      rms.push({ reps: i, weight: rm.toFixed(2) });
+      rms.push({ reps: i, weight: Math.round(rm) }); // Redondear al entero más cercano
     }
     return rms;
   };
 
   // Renderizar cada item de la cuadrícula
-  const renderItem = ({ item }: { item: { reps: number; weight: string } }) => (
+  const renderItem = ({ item }: { item: { reps: number; weight: number } }) => (
     <View style={styles.gradientBox}>
       <LinearGradient
         colors={['#737373', '#272729']}
-        start={{ x: 0, y: -1 }} 
-        end={{ x: 1, y: 0 }} 
+        start={{ x: 0, y: -1 }}
+        end={{ x: 1, y: 0 }}
         style={styles.gradientBackground}
       >
         <View style={styles.rmItem}>
@@ -62,7 +68,7 @@ const App: React.FC = () => {
           value={weight}
           onChangeText={(text) => {
             setWeight(text);
-            calculateOneRepMax(text, reps);
+            setOneRepMax(calculateOneRepMax(text, reps));
           }}
         />
         <View style={styles.divider} />
@@ -74,17 +80,10 @@ const App: React.FC = () => {
           value={reps}
           onChangeText={(text) => {
             setReps(text);
-            calculateOneRepMax(weight, text);
+            setOneRepMax(calculateOneRepMax(weight, text));
           }}
         />
       </View>
-
-      {/* Mostrar el 1RM calculado */}
-      {oneRepMax !== null && (
-        <Text style={styles.oneRepMaxText}>
-          1RM: {oneRepMax.toFixed(2)} kg
-        </Text>
-      )}
 
       {/* Cuadrícula de RM */}
       <FlatList
@@ -102,43 +101,37 @@ const App: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#161616', // Fondo de la app
+    padding: 10,
+    backgroundColor: '#161616',
   },
   inputContainer: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#272729', // Borde de los inputs
+    borderColor: '#272729',
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#272729', // Fondo de los inputs
+    backgroundColor: '#272729',
+    marginTop: 10,
   },
   input: {
     flex: 1,
     padding: 15,
     fontSize: 16,
-    color: '#fff', // Color del texto de los inputs
+    color: '#fff',
   },
   divider: {
     width: 1,
-    backgroundColor: '#444', // Color del divisor
-  },
-  oneRepMaxText: {
-    marginTop: 20,
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#fff', // Color del texto del 1RM
+    backgroundColor: '#444',
   },
   rmGrid: {
-    marginTop: 20,
+    marginTop: 10,
   },
   gradientBox: {
     flex: 1,
     margin: 5,
-    aspectRatio: 1, // Para que sea un cuadrado
-    borderRadius: 16, // Bordes redondeados
-    overflow: 'hidden', // Asegura que el degradado no se desborde
+    aspectRatio: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   gradientBackground: {
     flex: 1,
@@ -150,17 +143,17 @@ const styles = StyleSheet.create({
     height: '96%',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#272729', // Fondo del cuadrado
-    borderRadius: 14, // Bordes redondeados ligeramente más pequeños que el contenedor
+    backgroundColor: '#272729',
+    borderRadius: 14,
   },
   rmRepsText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#fff', // Color del texto de las repeticiones
+    color: '#fff',
   },
   rmWeightText: {
     fontSize: 14,
-    color: '#fff', // Color del texto del peso
+    color: '#fff',
   },
 });
 
